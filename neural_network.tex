@@ -1,0 +1,259 @@
+\documentclass[svgnames, border=0.3mm]{standalone}
+\usepackage{tikz}
+\usepackage{xcolor}
+\usetikzlibrary{calc,math,shadows,arrows.meta,decorations.markings}
+\newenvironment{standalonepage}{}{} %Dummy environment that contains pictures in the same page
+\standaloneenv{standalonepage} %The dummy environment is make known to the stand alone class
+
+\begin{document}
+\begin{standalonepage}
+    \begin{tikzpicture}[
+            node distance=1.5cm,
+            input/.style={rectangle, draw, minimum size=.75cm, fill=green!50},
+            neuron/.style={circle, draw, minimum size=.75cm},
+            hidden neuron/.style={neuron, fill=blue!50},
+            output neuron/.style={neuron, fill=red!50},
+            number list/.style={font=\scriptsize, align=left},
+            weight/.style={above, sloped, font=\tiny, yshift=-0.1cm, pos=0.15},
+            positive weight/.style={weight, draw=green!50!black},
+            negative weight/.style={weight, draw=red!75},
+            false negative weight/.style={weight, draw=Orchid!75},
+            unsigned weight/.style={weight, draw=black}
+        ]
+
+        % Define the network architecture as an array
+        % Each element represents the number of neurons in that layer
+        \def\networkShape{4,5,5,3}
+
+        % Weights signs
+        \def\positiveWeights{0,1,2,3,4}
+        \def\negativeWeights{5,6,7,8,9}
+        \def\falseNegativeWeights{10,11,12,13,14}
+
+        % Values of all model weights
+        \def\weightValues{}
+
+        % Display the index number or not (0 no / 1 yes)
+        \pgfmathsetmacro{\displayIndex}{1}
+
+        % Extract the number of layers
+        \pgfmathsetmacro{\numLayers}{dim({\networkShape})-1}
+        \pgfmathsetmacro{\numInputs}{{\networkShape}[0]}
+        \pgfmathsetmacro{\numFirstHiddenLayer}{{\networkShape}[1]}
+        \pgfmathsetmacro{\numOutputs}{{\networkShape}[\numLayers]}
+        \pgfmathsetmacro{\inputOffset}{(\numInputs - 1) / 2}
+
+        % Input neurons
+        \foreach \i in {1,...,\numInputs} {
+                \node[input] (x\i) at (0, -\i*2 + \inputOffset*2 + 2) {$x_{\i}$};
+            }
+
+        % Hidden layers
+        \pgfmathsetmacro{\numHiddenLayers}{{\numLayers - 1}}
+        \foreach \layer in {1,...,\numHiddenLayers} {
+                \pgfmathsetmacro{\numNeurons}{{\networkShape}[\layer]}
+                \pgfmathsetmacro{\offset}{(\numNeurons - 1) / 2}
+                \foreach \i in {1,...,\numNeurons} {
+                        \node[hidden neuron] (h\layer\i) at (4*\layer, -\i*1.5 + \offset*1.5 + 1.5) {$h^{\layer}_{\i}$};
+                    }
+            }
+
+        % Output neurons
+        \pgfmathsetmacro{\outputOffset}{(\numOutputs - 1) / 2}
+        \foreach \i in {1,...,\numOutputs} {
+                \node[output neuron] (y\i) at (4*\numLayers, -\i*1.5 + \outputOffset*1.5 + 1.5) {$y_{\i}$};
+            }
+
+        % Connections with weights from inputs to first layer
+        \foreach \i in {1,...,\numInputs} {
+                \foreach \j in {1,...,\numFirstHiddenLayer} {
+                        \pgfmathsetmacro{\index}{int((\i-1)*\numFirstHiddenLayer + \j - 1)}
+                        % Check if the index is in positive, negative or false negative weights
+                        \pgfmathsetmacro{\isPositive}{0}
+                        \pgfmathsetmacro{\isNegative}{0}
+                        \pgfmathsetmacro{\isFalseNegative}{0}
+                        \foreach \k in \positiveWeights {
+                            \pgfmathparse{int(\k == \index ? 1 : \isPositive)}
+                            \global\let\isPositive\pgfmathresult
+                        }
+                        \foreach \k in \negativeWeights {
+                            \pgfmathparse{int(\k == \index ? 1 : \isNegative)}
+                            \global\let\isNegative\pgfmathresult
+                        }
+                        \foreach \k in \falseNegativeWeights {
+                            \pgfmathparse{int(\k == \index ? 1 : \isFalseNegative)}
+                            \global\let\isFalseNegative\pgfmathresult
+                        }
+                        % \pgfmathsetmacro{\getValue}{{\weightValues}[\index]}
+                        \ifnum\isPositive=1
+                            \ifnum\displayIndex=1
+                                \draw[positive weight] (x\i.east) -- (h1\j.west) node[weight] {\index};
+                            \else
+                                \draw[positive weight] (x\i.east) -- (h1\j.west) node[weight] {};
+                            \fi
+                        \else
+                            \ifnum\isNegative=1
+                                \ifnum\displayIndex=1
+                                    \draw[negative weight] (x\i.east) -- (h1\j.west) node[weight] {\index};
+                                \else
+                                    \draw[negative weight] (x\i.east) -- (h1\j.west) node[weight] {};
+                                \fi
+                            \else
+                                \ifnum\isFalseNegative=1
+                                    \ifnum\displayIndex=1
+                                        \draw[false negative weight] (x\i.east) -- (h1\j.west) node[weight] {\index};
+                                    \else
+                                        \draw[false negative weight] (x\i.east) -- (h1\j.west) node[weight] {};
+                                    \fi
+                                \else
+                                    \ifnum\displayIndex=1
+                                        \draw[unsigned weight] (x\i.east) -- (h1\j.west) node[weight] {\index};
+                                    \else
+                                        \draw[unsigned weight] (x\i.east) -- (h1\j.west) node[weight] {};
+                                    \fi
+                                \fi
+                            \fi
+                        \fi
+                    }
+            }
+
+        % % Connections with weights first hidden layer to last hidden layer
+        \pgfmathsetmacro{\lastHiddenLayer}{\numHiddenLayers-1}
+        \newcounter{indexCounter}
+        \pgfmathtruncatemacro{\startIndex}{\numInputs * \numFirstHiddenLayer}
+        \setcounter{indexCounter}{\startIndex}
+        \foreach \layer in {1,...,\lastHiddenLayer} {
+                \pgfmathsetmacro{\numNeuronsCurrent}{{\networkShape}[\layer]}
+                \pgfmathsetmacro{\numNeuronsNext}{{\networkShape}[\layer+1]}
+                \foreach \i in {1,...,\numNeuronsCurrent} {
+                        \foreach \j in {1,...,\numNeuronsNext} {
+                                % Use the global counter instead of recalculating
+                                \pgfmathsetmacro{\index}{\value{indexCounter}}
+                                % Check if the index is in positive, negative or false negative weights
+                                \pgfmathsetmacro{\isPositive}{0}
+                                \pgfmathsetmacro{\isNegative}{0}
+                                \pgfmathsetmacro{\isFalseNegative}{0}
+                                \foreach \k in \positiveWeights {
+                                    \pgfmathparse{int(\k == \index ? 1 : \isPositive)}
+                                    \global\let\isPositive\pgfmathresult
+                                }
+                                \foreach \k in \negativeWeights {
+                                    \pgfmathparse{int(\k == \index ? 1 : \isNegative)}
+                                    \global\let\isNegative\pgfmathresult
+                                }
+                                \foreach \k in \falseNegativeWeights {
+                                    \pgfmathparse{int(\k == \index ? 1 : \isFalseNegative)}
+                                    \global\let\isFalseNegative\pgfmathresult
+                                }
+                                % \pgfmathsetmacro{\getValue}{{\weightValues}[\index]}
+                                \ifnum\isPositive=1
+                                    \ifnum\displayIndex=1
+                                        \draw[positive weight] (h\layer\i.east) -- (h\inteval{\layer+1}\j.west) node[weight] {\index};
+                                    \else
+                                        \draw[positive weight] (h\layer\i.east) -- (h\inteval{\layer+1}\j.west) node[weight] {};
+                                    \fi
+                                \else
+                                    \ifnum\isNegative=1
+                                        \ifnum\displayIndex=1
+                                            \draw[negative weight] (h\layer\i.east) -- (h\inteval{\layer+1}\j.west) node[weight] {\index};
+                                        \else
+                                            \draw[negative weight] (h\layer\i.east) -- (h\inteval{\layer+1}\j.west) node[weight] {};
+                                        \fi
+                                    \else
+                                        \ifnum\isFalseNegative=1
+                                            \ifnum\displayIndex=1
+                                                \draw[false negative weight] (h\layer\i.east) -- (h\inteval{\layer+1}\j.west) node[weight] {\index};
+                                            \else
+                                                \draw[false negative weight] (h\layer\i.east) -- (h\inteval{\layer+1}\j.west) node[weight] {};
+                                            \fi
+                                        \else
+                                            \ifnum\displayIndex=1
+                                                \draw[unsigned weight] (h\layer\i.east) -- (h\inteval{\layer+1}\j.west) node[weight] {\index};
+                                            \else
+                                                \draw[unsigned weight] (h\layer\i.east) -- (h\inteval{\layer+1}\j.west) node[weight] {};
+                                            \fi
+                                        \fi
+                                    \fi
+                                \fi
+                                % Increment the global index counter
+                                \addtocounter{indexCounter}{1}
+                            }
+                    }
+            }
+
+        \pgfmathsetmacro{\lastHiddenLayer}{int(\numLayers - 1)}
+        \pgfmathsetmacro{\numNeurons}{{\networkShape}[\lastHiddenLayer]}
+        \foreach \i in {1,...,\numNeurons}{
+                \foreach \k in {1,...,\numOutputs} {
+                        % Use the global counter instead of recalculating
+                        \pgfmathsetmacro{\index}{\value{indexCounter}}
+                        % Check if the index is in positive, negative or false negative weights
+                        \pgfmathsetmacro{\isPositive}{0}
+                        \pgfmathsetmacro{\isNegative}{0}
+                        \pgfmathsetmacro{\isFalseNegative}{0}
+                        \foreach \k in \positiveWeights {
+                            \pgfmathparse{int(\k == \index ? 1 : \isPositive)}
+                            \global\let\isPositive\pgfmathresult
+                        }
+                        \foreach \k in \negativeWeights {
+                            \pgfmathparse{int(\k == \index ? 1 : \isNegative)}
+                            \global\let\isNegative\pgfmathresult
+                        }
+                        \foreach \k in \falseNegativeWeights {
+                            \pgfmathparse{int(\k == \index ? 1 : \isFalseNegative)}
+                            \global\let\isFalseNegative\pgfmathresult
+                        }
+                        % \pgfmathsetmacro{\getValue}{{\weightValues}[\index]}
+                        \ifnum\isPositive=1
+                            \ifnum\displayIndex=1
+                                \draw[positive weight] (h\lastHiddenLayer\i.east) -- (y\k.west) node[weight] {\index};
+                            \else
+                                \draw[positive weight] (h\lastHiddenLayer\i.east) -- (y\k.west) node[weight] {};
+                            \fi
+                        \else
+                            \ifnum\isNegative=1
+                                \ifnum\displayIndex=1
+                                    \draw[negative weight] (h\lastHiddenLayer\i.east) -- (y\k.west) node[weight] {\index};
+                                \else
+                                    \draw[negative weight] (h\lastHiddenLayer\i.east) -- (y\k.west) node[weight] {};
+                                \fi
+                            \else
+                                \ifnum\isFalseNegative=1
+                                    \ifnum\displayIndex=1
+                                        \draw[false negative weight] (h\lastHiddenLayer\i.east) -- (y\k.west) node[weight] {\index};
+                                    \else
+                                        \draw[false negative weight] (h\lastHiddenLayer\i.east) -- (y\k.west) node[weight] {};
+                                    \fi
+                                \else
+                                    \ifnum\displayIndex=1
+                                        \draw[unsigned weight] (h\lastHiddenLayer\i.east) -- (y\k.west) node[weight] {\index};
+                                    \else
+                                        \draw[unsigned weight] (h\lastHiddenLayer\i.east) -- (y\k.west) node[weight] {};
+                                    \fi
+                                \fi
+                            \fi
+                        \fi
+                        % Increment the global index counter
+                        \addtocounter{indexCounter}{1}
+                    }
+            }
+
+        % Display network shape as text
+        \pgfmathsetmacro{\nbLayers}{int(\numLayers)}
+        \def\networkText{}
+        \foreach \i in {0,...,\nbLayers} {
+                \pgfmathparse{{\networkShape}[\i]}
+                \xdef\networkText{\networkText\pgfmathresult}
+                \ifnum\i<\nbLayers
+                    \xdef\networkText{\networkText~- }
+                \fi
+            }
+        \node (text) at ($(current bounding box.north) + (0,.75)$) {%
+            \networkText~/ Example
+        };
+
+        % Or display specific title at the center of the figure
+        % \node (text) at ($(h11) + (2,1)$) {4 - 5 - 5 - 3 / Example};
+    \end{tikzpicture}
+\end{standalonepage}
+\end{document}
