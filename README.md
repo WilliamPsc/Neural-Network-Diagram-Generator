@@ -6,8 +6,7 @@
     <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/t/WilliamPsc/generatorNeuralNetworkTikz?style=for-the-badge&logo=Github">
     <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/WilliamPsc/generatorNeuralNetworkTikz?display_timestamp=author&style=for-the-badge&logo=Github">
     <br/>
-    <img alt="Static Badge" src="https://img.shields.io/badge/version-V1.0-blue?style=for-the-badge&logo=Github">
-
+    <img alt="GitHub Release" src="https://img.shields.io/github/v/release/WilliamPsc/Neural-Network-Diagram-Generator?display_name=tag&style=for-the-badge">
 </p>
 
 # Neural Network Diagram Generator
@@ -18,6 +17,7 @@ This LaTeX script generates a detailed diagram of a neural network (MLP) using t
 - Weight Visualization: Display positive, negative, and false negative weights with different styles.
 - Index Display Option: Toggle the display of index numbers on the weights.
 - Automatic Layout: Neurons and connections are automatically positioned for clarity.
+- Biases : Display biases index or biases values.
 
 ## Usage
 1. **Define Network Architecture**: Modify the `\networkShape` variable to set the number of neurons in each layer.
@@ -47,24 +47,31 @@ This LaTeX script generates a detailed diagram of a neural network (MLP) using t
     \pgfmathsetmacro{\displayIndex}{0}
     ```
 
-5. **Update the Title of the Diagram**: At the end of the script, you can modify the title of the diagram.
+5. **Toggle Bias Display**: Set `displayBias` to `1` to display bias value if `\displayBiasValue` is set to 1, otherwise, only an index will be displayed, such as $`b_1^1`$.
+    ```latex
+    \pgfmathsetmacro{\displayBias}{1}
+    \pgfmathsetmacro{\displayBiasValue}{0}
+    ``` 
+
+6. **Update the Title of the Diagram**: At the end of the script, you can modify the title of the diagram.
+    These lines display as title the shape of the diagram separated by a hyphen, followed by the number of parameters in the model (not counting biases). You can modify these lines to update or comment these lines and uncomment the commented lines to only show one line of text where you can write what you want.
     ```latex
     \pgfmathsetmacro{\nbLayers}{int(\numLayers)}
+    \pgfmathsetmacro{\index}{\value{indexCounter}}
     \def\networkText{}
     \foreach \i in {0,...,\nbLayers} {
-        \pgfmathparse{{\networkShape}[\i]}
-        \xdef\networkText{\networkText\pgfmathresult}
-        \ifnum\i<\nbLayers
-            \xdef\networkText{\networkText~- }
-        \fi
-    }
-    \node (text) at ($(current bounding box.north) + (0,.75)$) {%
-        \networkText~/ Example
+            \pgfmathparse{{\networkShape}[\i]}
+            \xdef\networkText{\networkText\pgfmathresult}
+            \ifnum\i<\nbLayers
+                \xdef\networkText{\networkText~- }
+            \fi
+        }
+    \node (text) at ($(current bounding box.north) + (0,.5)$) {%
+        \networkText~/ \index~parameters
     };
     ```
-    These lines display as title the shape of the diagram separated by a hyphen, followed by `/ Example`. You can modify these lines to update or comment these lines and uncomment the commented lines to only show one line of text where you can write what you want.
 
-6. **Compile the Document**: Use a LaTeX editor that supports the `tikz` package to compile the document and generate the diagram.
+7. **Compile the Document**: Use a LaTeX editor that supports the `tikz` package to compile the document and generate the diagram.
     ```bash
     pdflatex neural_network.tex
     ```
@@ -107,6 +114,14 @@ The following example defines a neural network with 4 input neurons, 5 neurons i
   author = {William PENSEC},
   title = {{Neural Network Diagram Generator}},
   year = 2025,
-  url = {https://github.com/WilliamPsc/generatorNeuralNetworkTikz}
+  url = {https://github.com/WilliamPsc/Neural-Network-Diagram-Generator}
 }
 ```
+
+## Known issues
+- `\inteval`
+  If you encounter a problem on the line drawing in the hidden layers, it is probably due to `\inteval` expression that is not recognized by your `Tikz` or `LaTeX` version. So you only have to uncomment the `\usepackage{xfp}` line and the problem should be solved.
+
+## Future versions
+
+Open to new ideas
