@@ -17,7 +17,8 @@ This LaTeX script generates a detailed diagram of a neural network (MLP) using t
 - Weight Visualization: Display positive, negative, and false negative weights with different styles.
 - Index Display Option: Toggle the display of index numbers on the weights.
 - Automatic Layout: Neurons and connections are automatically positioned for clarity.
-- Biases : Display biases index or biases values.
+- Biases : Display biases index or biases values. Take into account the number of biases in the total number of parameters
+- Specific color: you can define specific color for a specific layer
 
 ## Usage
 1. **Define Network Architecture**: Modify the `\networkShape` variable to set the number of neurons in each layer.
@@ -51,12 +52,33 @@ This LaTeX script generates a detailed diagram of a neural network (MLP) using t
     ```latex
     \pgfmathsetmacro{\displayBias}{1}
     \pgfmathsetmacro{\displayBiasValue}{0}
-    ``` 
+    ```
 
-6. **Update the Title of the Diagram**: At the end of the script, you can modify the title of the diagram.
+6. **Specific color**: If you need to highlight a specific layer with a different color, you can modify the background color of a layer thanks to the lines:
+    ```latex
+    \ifnum\layer=1
+        \node[hidden neuron, fill=blue!50] (h\layer\i) at (4*\layer, -\i*2 + \offset*2 + 2) {$h^{\layer}_{\i}$};
+    \else
+        \node[hidden neuron] (h\layer\i) at (4*\layer, -\i*2 + \offset*2 + 2) {$h^{\layer}_{\i}$};
+    \fi
+    ```
+    Thanks to these lines, you can change the ```fill=blue!50``` with what any color you want from xcolor package. Also, if you want to modify multiples layers, you just need to extend the if/else like that:
+    ```latex
+    \ifnum\layer=1
+        \node[hidden neuron, fill=red] (h\layer\i) at (4*\layer, -\i*2 + \offset*2 + 2) {$h^{\layer}_{\i}$};
+    \else
+        \ifnum\layer=2
+            \node[hidden neuro, fill=green] (h\layer\i) at (4*\layer, -\i*2 + \offset*2 + 2) {$h^{\layer}_{\i}$};
+        \else
+            \node[hidden neuron] (h\layer\i) at (4*\layer, -\i*2 + \offset*2 + 2) {$h^{\layer}_{\i}$};
+        \fi
+    \fi
+
+7. **Update the Title of the Diagram**: At the end of the script, you can modify the title of the diagram.
     These lines display as title the shape of the diagram separated by a hyphen, followed by the number of parameters in the model (not counting biases). You can modify these lines to update or comment these lines and uncomment the commented lines to only show one line of text where you can write what you want.
     ```latex
     \pgfmathsetmacro{\nbLayers}{int(\numLayers)}
+    \addtocounter{indexCounter}{\value{nbParameters}}
     \pgfmathsetmacro{\index}{\value{indexCounter}}
     \def\networkText{}
     \foreach \i in {0,...,\nbLayers} {
@@ -71,7 +93,7 @@ This LaTeX script generates a detailed diagram of a neural network (MLP) using t
     };
     ```
 
-7. **Compile the Document**: Use a LaTeX editor that supports the `tikz` package to compile the document and generate the diagram.
+8. **Compile the Document**: Use a LaTeX editor that supports the `tikz` package to compile the document and generate the diagram.
     ```bash
     pdflatex neural_network.tex
     ```
@@ -104,11 +126,11 @@ The following example defines a neural network with 4 input neurons, 5 neurons i
 ## Contact Information
 - **Author**: William PENSEC
 - **Website**: <a href="https://pensec.fr">pensec.fr</a>
-- **Date**: April 2025
+- **Date of version**: July 2025
 
 ## Citation
 
-- **GitHub citation**
+- **GitHub citation for Bibtex or BibLatex**
 ```bibtex
 @online{generatorMLPDiagram,
   author = {William PENSEC},

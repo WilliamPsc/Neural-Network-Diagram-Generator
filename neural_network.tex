@@ -23,7 +23,7 @@
 
         % Define the network architecture as an array
         % Each element represents the number of neurons in that layer
-        \def\networkShape{4,5,5,3}
+        \def\networkShape{4,10,3}
 
         % Weights signs
         \def\positiveWeights{}
@@ -38,7 +38,7 @@
         \pgfmathsetmacro{\displayIndex}{0}
 
         % Display bias on each neurons
-        \pgfmathsetmacro{\displayBias}{1}
+        \pgfmathsetmacro{\displayBias}{0}
         \pgfmathsetmacro{\displayBiasValue}{0} % if set to 0, a name will be given instead of the value
 
         % Extract the number of layers
@@ -47,6 +47,11 @@
         \pgfmathsetmacro{\numFirstHiddenLayer}{{\networkShape}[1]}
         \pgfmathsetmacro{\numOutputs}{{\networkShape}[\numLayers]}
         \pgfmathsetmacro{\inputOffset}{(\numInputs - 1) / 2}
+
+        % Counters
+        \newcounter{indexCounter}
+        \newcounter{nbParameters}
+        \setcounter{nbParameters}{0}
 
         % Input neurons
         \foreach \i in {1,...,\numInputs} {
@@ -59,7 +64,11 @@
             \pgfmathsetmacro{\numNeurons}{{\networkShape}[\layer]}
             \pgfmathsetmacro{\offset}{(\numNeurons - 1) / 2}
             \foreach \i in {1,...,\numNeurons} {
-                \node[hidden neuron] (h\layer\i) at (4*\layer, -\i*2 + \offset*2 + 2) {$h^{\layer}_{\i}$};
+                \ifnum\layer=1 % if you need another color for a specific layer (you need to specify the different color for each layer)
+                    \node[hidden neuron, fill=blue!50] (h\layer\i) at (4*\layer, -\i*2 + \offset*2 + 2) {$h^{\layer}_{\i}$};
+                \else
+                    \node[hidden neuron] (h\layer\i) at (4*\layer, -\i*2 + \offset*2 + 2) {$h^{\layer}_{\i}$};
+                \fi
                 \ifnum\displayBias=1
                     \ifnum\displayBiasValue=1
                         \node[bias] (bias\layer\i) at ([yshift=5mm]h\layer\i.north) {\pgfmathparse{{\biasValues}[\layer-1][\i-1]}\pgfmathresult};
@@ -67,6 +76,7 @@
                         \node[bias] (bias\layer\i) at ([yshift=5mm]h\layer\i.north) {$b^{\layer}_{\i}$};
                     \fi
                     \draw[->, blue] (bias\layer\i) -- (h\layer\i);
+                    \addtocounter{nbParameters}{1}
                 \fi
             }
         }
@@ -141,7 +151,6 @@
 
         % Connections with weights first hidden layer to last hidden layer
         \pgfmathsetmacro{\lastHiddenLayer}{int(\numHiddenLayers-1)}
-        \newcounter{indexCounter}
         \pgfmathtruncatemacro{\startIndex}{\numInputs * \numFirstHiddenLayer}
         \setcounter{indexCounter}{\startIndex}
         \ifnum\lastHiddenLayer>0
@@ -264,6 +273,7 @@
 
         % Display network shape as text
         \pgfmathsetmacro{\nbLayers}{int(\numLayers)}
+        \addtocounter{indexCounter}{\value{nbParameters}}
         \pgfmathsetmacro{\index}{\value{indexCounter}}
         \def\networkText{}
         \foreach \i in {0,...,\nbLayers} {
