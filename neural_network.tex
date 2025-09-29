@@ -23,19 +23,20 @@
 
         % Define the network architecture as an array
         % Each element represents the number of neurons in that layer
-        \def\networkShape{4,10,3}
+        \def\networkShape{3,2,2,2}
 
         % Weights signs
-        \def\positiveWeights{}
-        \def\negativeWeights{}
+        \def\positiveWeights{1, 2, 4, 5, 6, 9, 10, 12, 13}
+        \def\negativeWeights{0, 3, 7, 8, 11}
         \def\falseNegativeWeights{}
 
         % Values of all model weights
-        \def\weightValues{}
-        \def\biasValues{{0.1, 0.2, 0.15, 0.25, 0.3}, {0.05, 0.1, 0.15, 0.2, 0.25}, {0.1, 0.4, 0.35}}
+        \def\weightValues{-0.663758, 0.801922, 0.993988, -0.763415, 0.211472, 0.181081, 1.139164, -0.898664, -0.994529, 0.454182, 0.36435, -0.304097, 1.132819, 0.787494}
+        \def\biasValues{}
 
         % Display the index number or not (0 no / 1 yes)
-        \pgfmathsetmacro{\displayIndex}{0}
+        \pgfmathsetmacro{\displayIndex}{1}
+        \pgfmathsetmacro{\displayWeightValue}{1} % if set to 0, a name will be given instead of the value
 
         % Display bias on each neurons
         \pgfmathsetmacro{\displayBias}{0}
